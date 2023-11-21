@@ -1,0 +1,12 @@
+.page {
+  min-height: 100vh;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+
+  &--center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
