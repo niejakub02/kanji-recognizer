@@ -6,10 +6,12 @@ matplotlib_title_font = {"fontname": "Noto Sans JP", "fontsize": 20}
 
 
 # CONSTANTS
-EPOCHS_COUNT = 30
+EPOCHS_COUNT = 5
 CLASSES_COUNT = 20
 LEARNING_RATE = 1e-4
 BATCH_SIZE = 32
+DATASET_SPLIT_RATIO = [0.75, 0.2, 0.05]  # train, validation, test
+MODELS_FOLDER_PATH = "models"
 
 
 # CLASSES

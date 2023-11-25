@@ -13,12 +13,19 @@ import matplotlib.pyplot as plt
 from classes import BasicNetwork, KanjiDataset
 from torchinfo import summary
 from tqdm import tqdm
-from consts import LEARNING_RATE, EPOCHS_COUNT, BATCH_SIZE, text_emphasis as te
+from consts import (
+    LEARNING_RATE,
+    EPOCHS_COUNT,
+    BATCH_SIZE,
+    MODELS_FOLDER_PATH,
+    DATASET_SPLIT_RATIO,
+    text_emphasis as te,
+)
 import torch.onnx
 import json
 
 # custom imports
-from utils import create_dataframe, display_image, load_images_paths
+from utils import create_dataframe, display_image, load_images_paths, create_folder, save_best_model
 
 # config
 np.set_printoptions(threshold=sys.maxsize)
@@ -29,10 +36,15 @@ IMAGES_FOLDER_NAME = "kkanji2"
 if __name__ == "__main__":
     versioning_file = json.load(open("version.json"))
     version = {"major": versioning_file["major"], "minor": versioning_file["minor"] + 1}
+    MODEL_FOLDER_PATH = f"{MODELS_FOLDER_PATH}/{version['major']}_{version['minor']}"
+    MODEL_PATH = f"{MODEL_FOLDER_PATH}/model_{version['major']}_{version['minor']}"
 
     images_paths = load_images_paths(IMAGES_FOLDER_NAME)
     dataframe = create_dataframe(images_paths, True)
     dataset = KanjiDataset(dataframe)
+
+    # # load dataset
+    # dataset = torch.load("./dataset.pt")
 
     # # how to read dataset
     # print(dataset[3][0].shape)
@@ -44,12 +56,15 @@ if __name__ == "__main__":
     # lab = sample["literal"].to_list()
     # display_image(img, lab)
 
+    create_folder(MODELS_FOLDER_PATH)
+    create_folder(MODEL_FOLDER_PATH)
+
     model = BasicNetwork()
     opt = Adam(model.parameters(), lr=LEARNING_RATE)
     lossFn = nn.CrossEntropyLoss()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # data_loader = DataLoader(dataset, 32, True)
-    train_set, validation_set, test_set = random_split(dataset, [0.75, 0.2, 0.05])
+    train_set, validation_set, test_set = random_split(dataset, DATASET_SPLIT_RATIO)
     train_loader = DataLoader(train_set, BATCH_SIZE, True)
     validation_loader = DataLoader(validation_set, BATCH_SIZE, True)
     test_loader = DataLoader(test_set, BATCH_SIZE, True)
@@ -58,7 +73,9 @@ if __name__ == "__main__":
     # TODO: to utils
     summary_output = summary(model, (1, 1, 64, 64), verbose=0)
     with open(
-        f"model_{version['major']}_{version['minor']}.txt", "w", encoding="utf-8"
+        f"{MODEL_PATH}.txt",
+        "w",
+        encoding="utf-8",
     ) as f:
         f.write(str(summary_output))
 
@@ -66,7 +83,7 @@ if __name__ == "__main__":
     json_object = json.dumps(
         dict(zip(dataset.unique_labels, range(len(dataset.unique_labels))))
     )
-    with open("test_dump.json", "w") as out:
+    with open(f"{MODEL_PATH}.json", "w") as out:
         out.write(json_object)
 
     # print(dataset[0][0])
@@ -131,25 +148,23 @@ if __name__ == "__main__":
             validation_rate.append(valCorrect / len(validation_set))
             print(f"validation: {validation_rate[-1]}")
 
-            # TODO: to utils
-            if validation_rate[-1] > (
-                max(validation_rate[:-1]) if len(validation_rate) > 1 else 0
-            ):
-                torch.save(
-                    model.state_dict(),
-                    f"model_{version['major']}_{version['minor']}.pt",
-                )
-                print(f"{te.BOLD + te.GREEN}-- UPDATE --{te.RESET}")
-            else:
-                print(f"{te.BOLD + te.RED}-- FAIL --{te.RESET}")
+            save_best_model(validation_rate, model, MODEL_PATH)
+            # if validation_rate[-1] > (
+            #     max(validation_rate[:-1]) if len(validation_rate) > 1 else 0
+            # ):
+            #     torch.save(
+            #         model.state_dict(),
+            #         f"{MODEL_PATH}.pt",
+            #     )
+            #     print(f"{te.BOLD + te.GREEN}-- UPDATE --{te.RESET}")
+            # else:
+            #     print(f"{te.BOLD + te.RED}-- FAIL --{te.RESET}")
 
     totalTestLoss = 0
     testCorrect = 0
     with torch.no_grad():
         best_model = BasicNetwork()
-        best_model.load_state_dict(
-            torch.load(f"model_{version['major']}_{version['minor']}.pt")
-        )
+        best_model.load_state_dict(torch.load(f"{MODEL_PATH}.pt"))
         best_model.eval()
         for x, y in test_loader:
             pred = best_model(x)

@@ -1,12 +1,13 @@
+import os
 from glob import glob
 import torch
 from torchvision.transforms import ToPILImage
 from torchvision.transforms.functional import convert_image_dtype
 from torchvision.io import read_image, ImageReadMode
-from os import getcwd
 from pandas import DataFrame
 import matplotlib.pyplot as plt
-from consts import matplotlib_title_font, CLASSES_COUNT
+import torch.nn as nn
+from consts import matplotlib_title_font, CLASSES_COUNT, text_emphasis as te
 
 
 def display_image(
@@ -51,7 +52,7 @@ def load_images_paths(path: str):
     <class_identifier> - name that will be used as class identifier (literal).\n
     ((images)) - images files
     """
-    return glob(rf"{getcwd()}\{path}\*")
+    return glob(rf"{os.getcwd()}\{path}\*")
 
 
 def create_dataframe(images_paths: list[str], convert_to_tensor: bool = False):
@@ -88,3 +89,21 @@ def create_dataframe(images_paths: list[str], convert_to_tensor: bool = False):
             break
 
     return DataFrame(dictionary, columns=["image", "literal"])
+
+
+def create_folder(path: str):
+    if not (os.path.exists(f"{os.getcwd()}/{path}")):
+        os.mkdir(f"{os.getcwd()}/{path}")
+
+
+def save_best_model(validation_rate: list[float], model: nn.Module, path: str):
+    if validation_rate[-1] > (
+        max(validation_rate[:-1]) if len(validation_rate) > 1 else 0
+    ):
+        torch.save(
+            model.state_dict(),
+            f"{path}.pt",
+        )
+        print(f"{te.BOLD + te.GREEN}-- UPDATE --{te.RESET}")
+    else:
+        print(f"{te.BOLD + te.RED}-- FAIL --{te.RESET}")
