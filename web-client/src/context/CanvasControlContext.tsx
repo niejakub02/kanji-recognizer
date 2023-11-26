@@ -12,6 +12,7 @@ type CanvasControlContext = {
   reset: () => void;
   undo: () => void;
   save: () => void;
+  getCompoundImage: () => HTMLCanvasElement | null;
 };
 
 type CanvasControlProviderProps = {
@@ -19,7 +20,6 @@ type CanvasControlProviderProps = {
 };
 
 const context = createContext<CanvasControlContext>({} as CanvasControlContext);
-// const ref = createRef<HTMLDivElement>();
 
 export const CanvasControlProvider: FC<CanvasControlProviderProps> = ({
   children,
@@ -34,10 +34,37 @@ export const CanvasControlProvider: FC<CanvasControlProviderProps> = ({
 
   const undo = () => ref.current?.lastChild?.remove();
 
-  const save = () => {};
+  const save = () => {
+    const virtualCanvas = getCompoundImage();
+
+    if (!virtualCanvas) return;
+    const link = document.createElement("a");
+    link.download = `${crypto.randomUUID()}.png`;
+    link.href = virtualCanvas.toDataURL();
+    link.click();
+  };
+
+  const getCompoundImage = () => {
+    if (!ref.current) return null;
+    const virtualCanvas = document.createElement("canvas");
+    virtualCanvas.height = 64;
+    virtualCanvas.width = 64;
+    const virtualCtx = virtualCanvas.getContext("2d");
+
+    if (!virtualCtx) return null;
+    virtualCtx.fillStyle = "black";
+    virtualCtx.fillRect(0, 0, virtualCanvas.width, virtualCanvas.height);
+    const atomicCanvas = [...ref.current.children] as HTMLCanvasElement[];
+    virtualCtx.fillStyle = "white";
+
+    for (const canvas of atomicCanvas) {
+      virtualCtx.drawImage(canvas, 0, 0, 64, 64);
+    }
+    return virtualCanvas;
+  };
 
   return (
-    <context.Provider value={{ ref, reset, undo, save }}>
+    <context.Provider value={{ ref, reset, undo, save, getCompoundImage }}>
       {children}
     </context.Provider>
   );

@@ -2,9 +2,22 @@ import { FC } from "react";
 import { Button } from "@mui/material";
 import useCanvasControlContext from "@context/CanvasControlContext";
 import "./Controls.scss";
+import useModelContext from "@context/ModelContext";
+import { convertCanvasToTensor } from "@utils/canvasUtils";
 
 export const Controls: FC = () => {
-  const { reset, undo, save } = useCanvasControlContext();
+  const { reset, undo, save, getCompoundImage } = useCanvasControlContext();
+  const { predict } = useModelContext();
+
+  const predictFromImage = () => {
+    const canvas = getCompoundImage();
+
+    if (!canvas) return;
+    const tensor = convertCanvasToTensor(canvas);
+
+    if (!tensor) return;
+    predict(tensor);
+  };
 
   return (
     <div className="controls">
@@ -13,6 +26,9 @@ export const Controls: FC = () => {
       </Button>
       <Button size="large" onClick={undo}>
         Undo
+      </Button>
+      <Button size="large" onClick={predictFromImage}>
+        Predict
       </Button>
       <Button size="large" onClick={save}>
         Save
