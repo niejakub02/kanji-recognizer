@@ -27,10 +27,10 @@ export const Controls: FC = () => {
       <Button size="large" onClick={undo}>
         Undo
       </Button>
-      <Button size="large" onClick={predictFromImage}>
+      <Button color="secondary" size="large" onClick={predictFromImage}>
         Predict
       </Button>
-      <Button size="large" onClick={save}>
+      <Button color="secondary" size="large" onClick={save}>
         Save
       </Button>
     </div>

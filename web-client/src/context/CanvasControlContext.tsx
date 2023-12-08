@@ -55,7 +55,6 @@ export const CanvasControlProvider: FC<CanvasControlProviderProps> = ({
     virtualCtx.fillStyle = "black";
     virtualCtx.fillRect(0, 0, virtualCanvas.width, virtualCanvas.height);
     const atomicCanvas = [...ref.current.children] as HTMLCanvasElement[];
-    virtualCtx.fillStyle = "white";
 
     for (const canvas of atomicCanvas) {
       virtualCtx.drawImage(canvas, 0, 0, 64, 64);

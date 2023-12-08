@@ -21,7 +21,10 @@ const router = createBrowserRouter([
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#bfbfbf",
+      main: "#ff4b41",
+    },
+    secondary: {
+      main: "#a61300",
     },
   },
 });

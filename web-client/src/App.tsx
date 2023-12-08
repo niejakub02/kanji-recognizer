@@ -17,7 +17,7 @@ function App() {
         virtualCanvas.height = 64;
         virtualCanvas.width = 64;
         const virtualCtx = virtualCanvas.getContext("2d")!;
-        // virtualCtx.fillStyle = "black";
+        virtualCtx.fillStyle = "black";
         virtualCtx.fillRect(0, 0, virtualCanvas.width, virtualCanvas.height);
         virtualCtx.drawImage(img, 0, 0, 64, 64);
         const uintarray = virtualCtx.getImageData(0, 0, 64, 64);
