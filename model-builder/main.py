@@ -25,12 +25,17 @@ import torch.onnx
 import json
 
 # custom imports
-from utils import create_dataframe, display_image, load_images_paths, create_folder, save_best_model
+from utils import (
+    create_dataframe,
+    load_images_paths,
+    create_folder,
+    save_best_model,
+)
 
 # config
 np.set_printoptions(threshold=sys.maxsize)
 torch.set_printoptions(threshold=sys.maxsize)
-IMAGES_FOLDER_NAME = "kkanji2"
+IMAGES_FOLDER_NAME = "ETL9B_CONVERTED"
 
 
 if __name__ == "__main__":
@@ -81,7 +86,7 @@ if __name__ == "__main__":
 
     # TODO: to utils
     json_object = json.dumps(
-        dict(zip(dataset.unique_labels, range(len(dataset.unique_labels))))
+        dict(zip(range(len(dataset.unique_labels)), dataset.unique_labels))
     )
     with open(f"{MODEL_PATH}.json", "w") as out:
         out.write(json_object)

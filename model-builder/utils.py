@@ -61,13 +61,16 @@ def create_dataframe(images_paths: list[str], convert_to_tensor: bool = False):
     count = 0
     # for i in images_paths:
     for i in images_paths:
-        arr = glob(rf"{i}\*")
+        arr = glob(rf"{i}\*.png")
         unicode = i.split("\\")[-1]
-        literal = chr(int(unicode[2::], 16))
+        # unicode[2::] for ELT8G
+        # unicode[1::] for ETL9B
+        literal = chr(int(unicode[1::], 16))
 
-        # test
-        if len(arr) < 90 or len(arr) > 100:
-            continue
+        # # test
+        # if len(arr) < 100 or len(arr) > 100:
+        #     continue
+        # print(literal, i, len(arr))
         print(literal, i, len(arr))
 
         for image_path in arr:
