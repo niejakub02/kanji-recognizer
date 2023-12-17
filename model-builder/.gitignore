@@ -3,4 +3,10 @@ kkanji2/
 etl8g/
 etl9b/
 etl9b_converted/
+etl9b_converteda/
 models/
+sets/
+**/*.pt
+**/*.onnx
+**/*.png
+**/*.csv

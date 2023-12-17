@@ -2,7 +2,7 @@ import torch
 from classes import BasicNetwork
 
 MAJOR = 1
-MINOR = 11
+MINOR = 16
 
 model = BasicNetwork()
 model.load_state_dict(torch.load(f"./models/{MAJOR}_{MINOR}/model_{MAJOR}_{MINOR}.pt"))

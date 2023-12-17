@@ -8,7 +8,7 @@ from torch import Tensor, nn
 from torchvision import transforms
 from torchvision.io import read_image, ImageReadMode
 from torch.utils.data import DataLoader, random_split
-from torch.optim import Adam
+from torch.optim import Adam, AdamW
 import matplotlib.pyplot as plt
 from classes import BasicNetwork, KanjiDataset
 from torchinfo import summary
@@ -23,6 +23,8 @@ from consts import (
 )
 import torch.onnx
 import json
+import csv
+import argparse
 
 # custom imports
 from utils import (
@@ -30,6 +32,8 @@ from utils import (
     load_images_paths,
     create_folder,
     save_best_model,
+    load_set,
+    handle_args,
 )
 
 # config
@@ -39,15 +43,17 @@ IMAGES_FOLDER_NAME = "ETL9B_CONVERTED"
 
 
 if __name__ == "__main__":
-    versioning_file = json.load(open("version.json"))
+    versioning_file = json.load(open("version.json", "r"))
     version = {"major": versioning_file["major"], "minor": versioning_file["minor"] + 1}
     MODEL_FOLDER_PATH = f"{MODELS_FOLDER_PATH}/{version['major']}_{version['minor']}"
     MODEL_PATH = f"{MODEL_FOLDER_PATH}/model_{version['major']}_{version['minor']}"
 
-    images_paths = load_images_paths(IMAGES_FOLDER_NAME)
+    subset = load_set("sets/hiragana.json")
+    images_paths = load_images_paths(IMAGES_FOLDER_NAME, subset)
     dataframe = create_dataframe(images_paths, True)
     dataset = KanjiDataset(dataframe)
 
+    stats = []
     # # load dataset
     # dataset = torch.load("./dataset.pt")
 
@@ -100,13 +106,13 @@ if __name__ == "__main__":
         model.train()
 
         # initialize the total training and validation loss
-        totalTrainLoss = 0
-        totalValLoss = 0
+        total_train_loss = 0
+        total_val_loss = 0
 
         # initialize the number of correct predictions in the training
         # and validation step
-        trainCorrect = 0
-        valCorrect = 0
+        train_correct = 0
+        val_correct = 0
 
         # loop over the training set
         for x, y in tqdm(train_loader, desc=f"Epoch {e}"):
@@ -127,9 +133,10 @@ if __name__ == "__main__":
 
             # add the loss to the total training loss so far and
             # calculate the number of correct predictions
-            totalTrainLoss += loss
-            trainCorrect += (pred.argmax(1) == y).type(torch.float).sum().item()
-        print(f"training: {trainCorrect / len(train_set)}")
+            total_train_loss += loss
+            train_correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+        print(f"loss: {total_train_loss}")
+        print(f"training: {train_correct / len(train_set)}")
 
         with torch.no_grad():
             # set the model in evaluation mode
@@ -146,24 +153,35 @@ if __name__ == "__main__":
                 # print(pred.argmax(1))
                 # print(y)
 
-                totalValLoss += lossFn(pred, y)
+                total_val_loss += lossFn(pred, y).item()
                 # calculate the number of correct predictions
-                valCorrect += (pred.argmax(1) == y).type(torch.float).sum().item()
+                val_correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
-            validation_rate.append(valCorrect / len(validation_set))
+            val_acc = val_correct / len(validation_set)
+            stats.append([e, total_val_loss, val_acc])
+            validation_rate.append(val_acc)
             print(f"validation: {validation_rate[-1]}")
 
             save_best_model(validation_rate, model, MODEL_PATH)
-            # if validation_rate[-1] > (
-            #     max(validation_rate[:-1]) if len(validation_rate) > 1 else 0
-            # ):
-            #     torch.save(
-            #         model.state_dict(),
-            #         f"{MODEL_PATH}.pt",
-            #     )
-            #     print(f"{te.BOLD + te.GREEN}-- UPDATE --{te.RESET}")
-            # else:
-            #     print(f"{te.BOLD + te.RED}-- FAIL --{te.RESET}")
+
+    # TODO to utils
+    if "-n" in sys.argv:
+        with open(f"{MODEL_FOLDER_PATH}/notes.txt", "w") as out:
+            try:
+                value = sys.argv[sys.argv.index("-n") + 1]
+                out.write(value)
+            except IndexError:
+                print("Provided value for notes is incorrect")
+
+    # TODO to utils
+    with open(f"{MODEL_PATH}.csv", "w", newline="") as out:
+        stats_headers = ["epoch", "loss", "accuracy"]
+        out.write("sep=;\n")
+        writer = csv.writer(out, delimiter=";")
+        writer.writerow(stats_headers)
+        writer.writerows(stats)
+
+    plt.plot(validation_rate)
 
     totalTestLoss = 0
     testCorrect = 0
@@ -181,6 +199,7 @@ if __name__ == "__main__":
     with open("version.json", "w") as out:
         out.write(json_object)
 
+    handle_args(MODEL_FOLDER_PATH)
     # switch off autograd for evaluation
 
     # display_image(dataset[0:8][0], dataset[0:8][1])
@@ -196,51 +215,3 @@ if __name__ == "__main__":
     # display_image(
     #     dataframe["image"].iloc[2:5].to_list(), dataframe["literal"].iloc[2:5].to_list()
     # )
-
-
-# arr = glob.glob(rf"{os.getcwd()}\kkanji2\*")
-
-# for count, i in enumerate(arr):
-#     arr_internal = glob.glob(rf"{i}\*")
-#     unicode = i.split("\\")[-1]
-#     literal = chr(int(unicode[2::], 16))
-#     print(unicode)
-#     print(literal)
-
-#     # print(arr_internal)
-
-#     # for j in arr_internal:
-#     #     print(j)
-
-#     # train_ds = tf.keras.utils.image_dataset_from_directory(
-#     #     arr_internal,
-#     #     validation_split=0.2,
-#     #     subset="training",
-#     #     seed=123,
-#     #     image_size=(64, 64),
-#     #     batch_size=32,
-#     # )
-
-#     # tf.keras.utils.img_to_array()
-
-#     # # Open image with PIL
-#     # img_PIL = Image.open(arr_internal[0])
-
-#     img_path = arr_internal[0]
-#     img_path2 = arr_internal[1]
-
-#     img = read_image(img_path, ImageReadMode.GRAY)
-#     img2 = read_image(img_path2, ImageReadMode.GRAY)
-#     # transform = transforms.ToPILImage()
-#     # out = transform(img)
-
-#     display_image(img)
-
-#     # plt.imshow(tensor_image.permute(1, 2, 0))
-#     # ex_tf = tf.keras.utils.load_img(ex, color_mode="grayscale")
-#     # print(train_ds)
-
-#     if count == 0:
-#         break
-# # path = os.path.realpath(path)
-# # os.startfile(path)f

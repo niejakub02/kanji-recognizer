@@ -24,7 +24,7 @@ export const ModelProvider: FC<ModelProviderProps> = ({ children }) => {
   const [dict, setDict] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    fetch("./../../model_1_8.json")
+    fetch("./../../model_1_16.json")
       .then((response) => response.json())
       .then((json) => setDict(json));
   }, []);
@@ -40,16 +40,20 @@ export const ModelProvider: FC<ModelProviderProps> = ({ children }) => {
     const outputData = await session.run(feeds);
     const output = outputData[session.outputNames[0]];
     const arr = [...output.data] as number[];
-    console.log(arr);
-    const outputArgMax = arr.indexOf(Math.max(...arr));
-    console.log(outputArgMax);
-    console.log(dict[outputArgMax]);
+    // console.log(arr);
+    for (let i = 0; i < 10; i++) {
+      const index = arr.indexOf(Math.max(...arr));
+      console.log(dict[index], "-", arr[index]);
+      arr[index] = Number.NEGATIVE_INFINITY;
+    }
+    // console.log(outputArgMax);
+    // console.log(dict[outputArgMax]);
   };
 
   useEffect(() => {
     (async () => {
       try {
-        await loadModel("./../../model_1_11.onnx");
+        await loadModel("./../../model_1_16.onnx");
         console.log("Model loaded successfully");
       } catch (err) {
         console.log("Something went wrong while loading model");
