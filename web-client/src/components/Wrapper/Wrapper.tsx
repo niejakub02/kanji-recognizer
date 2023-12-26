@@ -5,11 +5,13 @@ import { FC } from "react";
 import "./Wrapper.scss";
 
 export const Wrapper: FC = () => {
-  const { ref } = useCanvasControlContext();
+  const { ref, setStrokes } = useCanvasControlContext();
+
+  const handleStrokeAdd = () => setStrokes((prev) => prev + 1);
 
   return (
     <div className="wrapper">
-      <Canvas ref={ref} />
+      <Canvas ref={ref} onStrokeAdd={handleStrokeAdd} />
       <Controls />
     </div>
   );

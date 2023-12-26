@@ -1,0 +1,11 @@
+.menu-item {
+  &__set,
+  &__label {
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  &__label {
+    margin-left: 0.55rem;
+  }
+}

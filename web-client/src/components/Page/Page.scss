@@ -4,6 +4,8 @@
   width: 100%;
   flex-direction: column;
   gap: 1rem;
+  padding: 1rem 0;
+  box-sizing: border-box;
 
   &--center {
     display: flex;

@@ -1,0 +1,48 @@
+.predictions-accordion {
+  width: 384px;
+
+  .predictions-label {
+    font-weight: 500;
+    letter-spacing: 0.1rem;
+    text-transform: uppercase;
+  }
+
+  .predictions-container {
+    width: 100%;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    column-gap: 2.5rem;
+    box-sizing: border-box;
+    transition: height 1s;
+
+    .prediction {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      &__literal {
+        font-size: 2rem;
+      }
+
+      &__value {
+        color: #ff4b41;
+      }
+    }
+
+    &--empty {
+      height: 216px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      text-align: center;
+
+      strong {
+        color: #ff4b41;
+      }
+    }
+  }
+}

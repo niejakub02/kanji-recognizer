@@ -1,6 +1,29 @@
 .controls {
-  display: flex;
+  width: 100%;
+  display: grid;
   justify-content: center;
   align-items: center;
   gap: 0.5rem;
+  grid: repeat(2, 1fr) / 10% 30% 30% 30%;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+
+  .row--2 {
+    grid-row: span 2;
+
+    &:not(.MuiIconButton-root) {
+      height: 100%;
+    }
+  }
+
+  .control {
+    &--hidden {
+      display: none;
+    }
+
+    &:disabled {
+      color: rgba(255, 75, 65, 0.26);
+      border-color: rgba(255, 75, 65, 0.12);
+    }
+  }
 }

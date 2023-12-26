@@ -5,6 +5,7 @@ import path from "path";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "/kanji-recognizer",
   plugins: [
     react(),
     viteStaticCopy({
@@ -28,6 +29,10 @@ export default defineConfig({
       },
       { find: "@pages", replacement: path.resolve(__dirname, "src/pages") },
       { find: "@utils", replacement: path.resolve(__dirname, "src/utils") },
+      {
+        find: "@interfaces",
+        replacement: path.resolve(__dirname, "src/interfaces"),
+      },
     ],
   },
 });
