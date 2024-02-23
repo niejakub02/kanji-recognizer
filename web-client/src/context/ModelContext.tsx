@@ -9,6 +9,7 @@ import {
 import { InferenceSession, Tensor } from "onnxruntime-web";
 import useLoaderContext from "./LoaderContext";
 import { Prediction } from "@interfaces/common";
+import { models } from "@components/ModelsMenu/ModelsMenu";
 
 type ModelProviderProps = {
   children: ReactNode;
@@ -50,37 +51,29 @@ export const ModelProvider: FC<ModelProviderProps> = ({ children }) => {
 
   const predict = async (input: any) => {
     if (!session) return;
-    console.log(input);
     const feeds: Record<string, Tensor> = {};
     feeds[session.inputNames[0]] = input;
     const outputData = await session.run(feeds);
     const output = outputData[session.outputNames[0]];
     let arr = [...output.data] as number[];
-    // console.log(arr);
+
     const arr2 = [...arr];
-    // for (let i = 0; i < 10; i++) {
-    //   const index = arr.indexOf(Math.max(...arr));
-    //   console.log(dict[index], "-", arr[index]);
-    //   arr[index] = Number.NEGATIVE_INFINITY;
-    // }
-    function softmax(arr: number[]) {
-      return arr.map(function (value) {
-        return (
-          Math.exp(value) /
-          arr
-            .map(function (y /*value*/) {
-              return Math.exp(y);
-            })
-            .reduce(function (a, b) {
-              return a + b;
-            })
-        );
-      });
+    for (let i = 0; i < 12; i++) {
+      const index = arr.indexOf(Math.max(...arr));
+      console.log(dict[index], "-", arr[index]);
+      arr[index] = Number.NEGATIVE_INFINITY;
     }
+
+    const softmax = (values: number[]) =>
+      values.map(
+        (v) =>
+          Math.exp(v) /
+          values.reduce((acc, currentValue) => acc + Math.exp(currentValue), 0)
+      );
 
     arr = softmax([...arr2]);
     const currentPrediction: Prediction[] = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 12; i++) {
       const index = arr.indexOf(Math.max(...arr));
       console.log(dict[index], "-", arr[index]);
       currentPrediction.push({
@@ -94,7 +87,8 @@ export const ModelProvider: FC<ModelProviderProps> = ({ children }) => {
 
   useEffect(() => {
     (async () => {
-      await loadModel("./../../model_1_24.onnx", "./../../model_1_24.json");
+      const [model] = models;
+      await loadModel(model.modelPath, model.mapObjectPath);
     })();
   }, []);
 

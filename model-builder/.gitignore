@@ -1,5 +1,7 @@
 __pycache__
 kkanji2/
+etl6/
+etl7/
 etl8g/
 etl9b/
 etl9b_converted/
@@ -10,3 +12,5 @@ sets/
 **/*.onnx
 **/*.png
 **/*.csv
+fonts**/
+kanjidic2/

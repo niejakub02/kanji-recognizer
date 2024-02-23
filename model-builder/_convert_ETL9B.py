@@ -1,7 +1,7 @@
 from glob import glob
 from PIL import Image
 from uuid import uuid4
-from utils import create_folder, encodeCodepoint
+from utils import create_folder, encode_codepoint
 import os
 
 PATH_ETL9B = "ETL9B"
@@ -38,7 +38,7 @@ if __name__ == "__main__":
                 ):
                     try:
                         literal = next(it)
-                        code_point = encodeCodepoint(literal)
+                        code_point = encode_codepoint(literal)
                         cropped_im = im.crop(
                             (
                                 x_start,

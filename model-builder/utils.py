@@ -1,7 +1,7 @@
 import os
 from glob import glob
 import torch
-from torchvision.transforms import ToPILImage
+from torchvision.transforms import ToPILImage, v2
 from torchvision.transforms.functional import convert_image_dtype
 from torchvision.io import read_image, ImageReadMode
 from pandas import DataFrame
@@ -10,27 +10,27 @@ import torch.nn as nn
 import json
 from consts import matplotlib_title_font, CLASSES_COUNT, text_emphasis as te
 import argparse
+from PIL import Image
+from uuid import uuid4
 
 
-def display_image(
-    tensor: torch.Tensor | list[torch.Tensor], literal: str | list[str] = "unknown"
-):
+def display_image(tensor: torch.Tensor | list[torch.Tensor], literal: str | list[str]):
     """
     Takes a tensor or list of tensors and displays them in a plot.\n
     Images are displayed in grayscale.
     """
-    if (
-        isinstance(tensor, list)
-        and isinstance(literal, list)
-        and len(tensor) == len(literal)
-    ):
+    if isinstance(tensor, list):
+        for i in range(len(tensor) - len(literal)):
+            literal.append("")
         fig, axs = plt.subplots(1, len(tensor))
         for i, (_tensor, _literal) in enumerate(zip(tensor, literal)):
             axs[i].set_title(_literal, matplotlib_title_font)
             axs[i].set_axis_off()
             axs[i].imshow(ToPILImage()(_tensor), cmap="gray")
 
-    elif isinstance(tensor, torch.Tensor) and isinstance(literal, str):
+    elif isinstance(tensor, torch.Tensor):
+        if not literal:
+            literal = "unknown"
         plt.title(literal, matplotlib_title_font)
         plt.imshow(ToPILImage()(tensor), cmap="gray")
         plt.axis("off")
@@ -73,18 +73,31 @@ def create_dataframe(images_paths: list[str], convert_to_tensor: bool = False):
     # # test
     # count = 0
     # for i in images_paths:
-    for i in images_paths:
+    for count, i in enumerate(images_paths):
         arr = glob(rf"{i}\*.png")
         unicode = i.split("\\")[-1]
-        literal = decodeCodepoint(unicode)
-
+        literal = decode_codepoint(unicode)
         # # test
         # if len(arr) < 100 or len(arr) > 100:
         #     continue
         # print(literal, i, len(arr))
-        print(literal, i, len(arr))
+        print(count, literal, i, len(arr))
 
         for image_path in arr:
+            # with inverting colors for ETL6
+            # img = convert_image_dtype(
+            #     read_image(image_path, ImageReadMode.GRAY), dtype=torch.float
+            # )
+            # transforms = v2.Compose([v2.functional.invert])
+            # img = transforms(img)
+            # dictionary.append(
+            #     {
+            #         "image": img if convert_to_tensor else image_path,
+            #         "literal": literal,
+            #     }
+            # )
+
+            # # no inverting colors
             dictionary.append(
                 {
                     "image": convert_image_dtype(
@@ -97,11 +110,6 @@ def create_dataframe(images_paths: list[str], convert_to_tensor: bool = False):
             )
         #     # test
         # count += 1
-
-        # # test
-        # if count == CLASSES_COUNT:
-        #     break
-
     return DataFrame(dictionary, columns=["image", "literal"])
 
 
@@ -139,15 +147,32 @@ def handle_args(MODEL_FOLDER_PATH: str):
             out.write(config["notes"])
 
 
-def encodeCodepoint(character: str):
+def encode_codepoint(character: str):
     """
     Returns unicode code point
     """
     return f"U+{character.encode('unicode_escape').decode('utf8')[2::]}"
 
 
-def decodeCodepoint(character: str):
+def decode_codepoint(character: str):
     """
     Returns literal (utf-16)
     """
     return chr(int(character[2::], 16))
+
+
+def format_drawings(drawings_path: str, output_folder: str):
+    create_folder(output_folder)
+
+    drawings = glob(rf"{os.getcwd()}\{drawings_path}\*")
+    for drawing in drawings:
+        drawing_name = drawing.split("\\")[-1]
+        character, _ = os.path.splitext(drawing_name)
+        codepoint = encode_codepoint(character)
+        folder = os.path.join(output_folder, codepoint)
+        create_folder(folder)
+
+        image = Image.open(drawing).resize((64, 64))
+        black_background = Image.new("L", (64, 64), color=0)
+        black_background.paste(image)
+        black_background.save(os.path.join(folder, f"{uuid4()}.png"))

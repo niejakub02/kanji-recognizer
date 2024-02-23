@@ -1,27 +1,23 @@
-import {
-  FC,
-  ReactNode,
-  // useState
-} from "react";
+import { FC, ReactNode } from "react";
 import "./Page.scss";
+import { Link } from "react-router-dom";
 
 interface PageProps {
   children: ReactNode;
   center?: boolean;
 }
 export const Page: FC<PageProps> = ({ children, center }) => {
-  // const [r, sr] = useState<number>(0);
   return (
-    <div
-      className={`page ${center ? "page--center" : ""}`}
-      // key={r}
-    >
+    <div className={`page ${center ? "page--center" : ""}`}>
+      <div className="github-ref">
+        <Link to="https://github.com/niejakub02/kanji-recognizer">
+          <img
+            src="/kanji-recognizer/github-mark-white.svg"
+            className="github-ref__logo"
+          />
+        </Link>
+      </div>
       {children}
-      {/* <button
-        onClick={() => {
-          sr((r) => r + 1);
-        }}
-      ></button> */}
     </div>
   );
 };

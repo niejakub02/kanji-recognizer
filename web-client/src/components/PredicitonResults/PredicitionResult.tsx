@@ -9,7 +9,7 @@ export const PredicitonResult: FC<PredicitonResultProps> = ({ prediction }) => {
   return (
     <div className="prediction">
       <div className="prediction__literal">{prediction.literal}</div>
-      <div className="prediction__value">{prediction.value.toFixed(4)}</div>
+      <div className="prediction__value">{(prediction.value * 100).toFixed(2)}%</div>
     </div>
   );
 };

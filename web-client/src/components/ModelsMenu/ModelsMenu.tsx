@@ -6,21 +6,36 @@ import useModelContext from "@context/ModelContext";
 import AutoAwesomeMotionIcon from "@mui/icons-material/AutoAwesomeMotion";
 import "./ModelsMenu.scss";
 
-const models: Model[] = [
+export const models: Model[] = [
   {
-    set: "Hiragana",
-    modelPath: "./../../model_1_24.onnx",
-    mapObjectPath: "./../../model_1_24.json",
+    set: "ETL_HIRAGANA",
+    modelPath: "/kanji-recognizer/models/model_3_6.onnx",
+    mapObjectPath: "/kanji-recognizer/models/model_3_6.json",
   },
   {
-    set: "Katakana",
-    modelPath: "./../../model_1_24.onnx",
-    mapObjectPath: "./../../model_1_24.json",
+    set: "ETL_KATAKANA",
+    modelPath: "/kanji-recognizer/models/model_3_10.onnx",
+    mapObjectPath: "/kanji-recognizer/models/model_3_10.json",
   },
   {
-    set: "Kanji",
-    modelPath: "./../../model_1_24.onnx",
-    mapObjectPath: "./../../model_1_24.json",
+    set: "ETL_KANJI",
+    modelPath: "/kanji-recognizer/models/model_3_8.onnx",
+    mapObjectPath: "/kanji-recognizer/models/model_3_8.json",
+  },
+  {
+    set: "CUSTOM_HIRAGANA",
+    modelPath: "/kanji-recognizer/models/model_3_3.onnx",
+    mapObjectPath: "/kanji-recognizer/models/model_3_3.json",
+  },
+  {
+    set: "CUSTOM_KATAKANA",
+    modelPath: "/kanji-recognizer/models/model_2_6.onnx",
+    mapObjectPath: "/kanji-recognizer/models/model_2_6.json",
+  },
+  {
+    set: "CUSTOM_KANJI",
+    modelPath: "/kanji-recognizer/models/model_3_11.onnx",
+    mapObjectPath: "/kanji-recognizer/models/model_3_11.json",
   },
 ];
 

@@ -23,7 +23,6 @@ export const PredicitonResults: FC = () => {
     if (prediction?.length) {
       setIsOpen(true);
       setIsEmpty(false);
-
       accordionRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [prediction]);

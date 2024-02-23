@@ -8,9 +8,9 @@ from torch import Tensor, nn
 from torchvision import transforms
 from torchvision.io import read_image, ImageReadMode
 from torch.utils.data import DataLoader, random_split
-from torch.optim import Adam, AdamW
+from torch.optim import Adam
 import matplotlib.pyplot as plt
-from classes import BasicNetwork, KanjiDataset
+import classes
 from torchinfo import summary
 from tqdm import tqdm
 from consts import (
@@ -24,22 +24,16 @@ from consts import (
 import torch.onnx
 import json
 import csv
+import io
 import argparse
+import utils
 
 # custom imports
-from utils import (
-    create_dataframe,
-    load_images_paths,
-    create_folder,
-    save_best_model,
-    load_set,
-    handle_args,
-)
 
 # config
 np.set_printoptions(threshold=sys.maxsize)
 torch.set_printoptions(threshold=sys.maxsize)
-IMAGES_FOLDER_NAME = "ETL9B_CONVERTED"
+IMAGES_FOLDER_NAME = "kkanji2"
 
 
 if __name__ == "__main__":
@@ -48,12 +42,16 @@ if __name__ == "__main__":
     MODEL_FOLDER_PATH = f"{MODELS_FOLDER_PATH}/{version['major']}_{version['minor']}"
     MODEL_PATH = f"{MODEL_FOLDER_PATH}/model_{version['major']}_{version['minor']}"
 
-    subset = load_set("sets/hiragana.json")
-    images_paths = load_images_paths(IMAGES_FOLDER_NAME, subset)
-    dataframe = create_dataframe(images_paths, True)
-    dataset = KanjiDataset(dataframe)
-
-    stats = []
+    # subset = load_set("sets/hiragana.json")
+    # images_paths = load_images_paths(IMAGES_FOLDER_NAME, subset)
+    # utils.format_drawings("katakana-mouse", IMAGES_FOLDER_NAME)
+    images_paths = utils.load_images_paths(IMAGES_FOLDER_NAME)
+    dataframe = utils.create_dataframe(images_paths, True)
+    dataset = classes.CustomDataset(dataframe)
+    # dataset = torch.load("./dataset-hiragana.pt")
+    torch.save(dataset, "dataset-kuzushiji.pt")
+    # dataset.adjust(["か", "も", "い", "ぽ", "く"])
+    exit()
     # # load dataset
     # dataset = torch.load("./dataset.pt")
 
@@ -67,10 +65,12 @@ if __name__ == "__main__":
     # lab = sample["literal"].to_list()
     # display_image(img, lab)
 
-    create_folder(MODELS_FOLDER_PATH)
-    create_folder(MODEL_FOLDER_PATH)
+    utils.create_folder(MODELS_FOLDER_PATH)
+    utils.create_folder(MODEL_FOLDER_PATH)
 
-    model = BasicNetwork()
+    model = classes.CNN_8()
+    if torch.cuda.is_available():
+        model.cuda()
     opt = Adam(model.parameters(), lr=LEARNING_RATE)
     lossFn = nn.CrossEntropyLoss()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -80,6 +80,7 @@ if __name__ == "__main__":
     validation_loader = DataLoader(validation_set, BATCH_SIZE, True)
     test_loader = DataLoader(test_set, BATCH_SIZE, True)
     validation_rate = []
+    stats = []
 
     # TODO: to utils
     summary_output = summary(model, (1, 1, 64, 64), verbose=0)
@@ -96,7 +97,6 @@ if __name__ == "__main__":
     )
     with open(f"{MODEL_PATH}.json", "w") as out:
         out.write(json_object)
-
     # print(dataset[0][0])
     # display_image(dataset[0][0])
 
@@ -115,13 +115,14 @@ if __name__ == "__main__":
         val_correct = 0
 
         # loop over the training set
-        for x, y in tqdm(train_loader, desc=f"Epoch {e}"):
+        for x, y in tqdm(train_loader, desc=f"Epoch {e+1}"):
             # send the input to the device
-            # (x, y) = (x.to(device), y.to(device))
+            (x, y) = x.to(device), y.to(device)
 
             # perform a forward pass and calculate the training loss
             # display_image(list(x), list(y))
             pred = model(x)
+            print(pred.size())
             loss = lossFn(pred, y)
             # print(x[0])
             # print(type(x[0]))
@@ -133,10 +134,9 @@ if __name__ == "__main__":
 
             # add the loss to the total training loss so far and
             # calculate the number of correct predictions
-            total_train_loss += loss
+            total_train_loss += loss.item()
+
             train_correct += (pred.argmax(1) == y).type(torch.float).sum().item()
-        print(f"loss: {total_train_loss}")
-        print(f"training: {train_correct / len(train_set)}")
 
         with torch.no_grad():
             # set the model in evaluation mode
@@ -144,11 +144,10 @@ if __name__ == "__main__":
             # loop over the validation set
             for x, y in validation_loader:
                 # send the input to the device
-                # (x, y) = (x.to(device), y.to(device))
+                (x, y) = x.to(device), y.to(device)
 
                 # make the predictions and calculate the validation loss
                 pred = model(x)
-
                 # # to compare outputs
                 # print(pred.argmax(1))
                 # print(y)
@@ -157,12 +156,17 @@ if __name__ == "__main__":
                 # calculate the number of correct predictions
                 val_correct += (pred.argmax(1) == y).type(torch.float).sum().item()
 
+            train_acc = train_correct / len(train_set)
             val_acc = val_correct / len(validation_set)
-            stats.append([e, total_val_loss, val_acc])
+            stats.append([e, total_train_loss, train_acc, total_val_loss, val_acc])
             validation_rate.append(val_acc)
-            print(f"validation: {validation_rate[-1]}")
 
-            save_best_model(validation_rate, model, MODEL_PATH)
+            print(f"train loss: {total_train_loss}")
+            print(f"training accuracy: {train_acc}")
+            print(f"validation loss: {total_val_loss}")
+            print(f"validation accuracy: {validation_rate[-1]}")
+
+            utils.save_best_model(validation_rate, model, MODEL_PATH)
 
     # TODO to utils
     if "-n" in sys.argv:
@@ -183,23 +187,26 @@ if __name__ == "__main__":
 
     plt.plot(validation_rate)
 
-    totalTestLoss = 0
     testCorrect = 0
     with torch.no_grad():
-        best_model = BasicNetwork()
+        best_model = classes.CNN_8()
         best_model.load_state_dict(torch.load(f"{MODEL_PATH}.pt"))
         best_model.eval()
         for x, y in test_loader:
+            (x, y) = x.to(device), y.to(device)
             pred = best_model(x)
             testCorrect += (pred.argmax(1) == y).type(torch.float).sum().item()
-    print(f"test: {testCorrect / len(test_set)}")
+
+    test_acc = testCorrect / len(test_set)
+    print(f"test accuracy: {testCorrect / len(test_set)}")
+    stats.append(["TEST", "", test_acc])
 
     # TODO: to utils
     json_object = json.dumps(version)
     with open("version.json", "w") as out:
         out.write(json_object)
 
-    handle_args(MODEL_FOLDER_PATH)
+    utils.handle_args(MODEL_FOLDER_PATH)
     # switch off autograd for evaluation
 
     # display_image(dataset[0:8][0], dataset[0:8][1])
