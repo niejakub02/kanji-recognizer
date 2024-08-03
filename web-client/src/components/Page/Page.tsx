@@ -11,10 +11,7 @@ export const Page: FC<PageProps> = ({ children, center }) => {
     <div className={`page ${center ? "page--center" : ""}`}>
       <div className="github-ref">
         <Link to="https://github.com/niejakub02/kanji-recognizer">
-          <img
-            src="/kanji-recognizer/github-mark-white.svg"
-            className="github-ref__logo"
-          />
+          <img src="/github-mark-white.svg" className="github-ref__logo" />
         </Link>
       </div>
       {children}

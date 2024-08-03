@@ -1,7 +1,6 @@
-import { useRef, useCallback, forwardRef, useImperativeHandle } from "react";
-import "./Canvas.scss";
-import { createCanvas, drawSolidLine } from "@utils/canvasUtils";
-import { isMobile } from "react-device-detect";
+import { useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
+import './Canvas.scss';
+import { createCanvas, drawSolidLine } from '@utils/canvasUtils';
 
 interface CanvasProps {
   onStrokeAdd?: () => void;
@@ -21,14 +20,11 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       const { current: container } = canvasContainer;
       if (!container) return;
       container.append(createCanvas());
-      container.addEventListener(isMobile ? "touchmove" : "mousemove", draw);
+      container.addEventListener('pointermove', draw);
     };
 
     const drawEnd = () => {
-      canvasContainer.current?.removeEventListener(
-        isMobile ? "touchmove" : "mousemove",
-        draw
-      );
+      canvasContainer.current?.removeEventListener('pointermove', draw);
     };
 
     const strokeFinish = () => {
@@ -36,40 +32,25 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       onStrokeAdd?.();
     };
 
-    const draw = useCallback((e: MouseEvent | TouchEvent) => {
+    const draw = useCallback((e: MouseEvent) => {
       const canvas = canvasContainer.current
         ?.lastChild as HTMLCanvasElement | null;
       if (!canvas) return;
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext('2d');
       const { current: container } = canvasContainer;
       if (!context || !container) return;
-      const clientX = isMobile
-        ? (e as TouchEvent).touches[0].pageX
-        : (e as MouseEvent).pageX;
-      const clientY = isMobile
-        ? (e as TouchEvent).touches[0].pageY
-        : (e as MouseEvent).pageY;
-      const x = clientX - container.offsetLeft;
-      const y = clientY - container.offsetTop;
+      const x = e.pageX - container.offsetLeft;
+      const y = e.pageY - container.offsetTop;
       drawSolidLine(context, x, y);
     }, []);
 
-    const handlers = isMobile
-      ? {
-          onTouchStart: drawStart,
-          onTouchEnd: strokeFinish,
-        }
-      : {
-          onMouseDown: drawStart,
-          onMouseUp: strokeFinish,
-          onMouseLeave: drawEnd,
-        };
-
     return (
       <div
-        className="canvas-container"
+        className={`canvas-container`}
         ref={canvasContainer}
-        {...handlers}
+        onPointerDown={drawStart}
+        onPointerUp={strokeFinish}
+        onPointerLeave={drawEnd}
       ></div>
     );
   }

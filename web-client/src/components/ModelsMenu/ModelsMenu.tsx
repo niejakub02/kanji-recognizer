@@ -9,33 +9,33 @@ import "./ModelsMenu.scss";
 export const models: Model[] = [
   {
     set: "ETL_HIRAGANA",
-    modelPath: "/kanji-recognizer/models/model_3_6.onnx",
-    mapObjectPath: "/kanji-recognizer/models/model_3_6.json",
+    modelPath: "/models/model_3_6.onnx",
+    mapObjectPath: "/models/model_3_6.json",
   },
   {
     set: "ETL_KATAKANA",
-    modelPath: "/kanji-recognizer/models/model_3_10.onnx",
-    mapObjectPath: "/kanji-recognizer/models/model_3_10.json",
+    modelPath: "/models/model_3_10.onnx",
+    mapObjectPath: "/models/model_3_10.json",
   },
   {
     set: "ETL_KANJI",
-    modelPath: "/kanji-recognizer/models/model_3_8.onnx",
-    mapObjectPath: "/kanji-recognizer/models/model_3_8.json",
+    modelPath: "/models/model_3_8.onnx",
+    mapObjectPath: "/models/model_3_8.json",
   },
   {
     set: "CUSTOM_HIRAGANA",
-    modelPath: "/kanji-recognizer/models/model_3_3.onnx",
-    mapObjectPath: "/kanji-recognizer/models/model_3_3.json",
+    modelPath: "/models/model_3_3.onnx",
+    mapObjectPath: "/models/model_3_3.json",
   },
   {
     set: "CUSTOM_KATAKANA",
-    modelPath: "/kanji-recognizer/models/model_2_6.onnx",
-    mapObjectPath: "/kanji-recognizer/models/model_2_6.json",
+    modelPath: "/models/model_2_6.onnx",
+    mapObjectPath: "/models/model_2_6.json",
   },
   {
     set: "CUSTOM_KANJI",
-    modelPath: "/kanji-recognizer/models/model_3_11.onnx",
-    mapObjectPath: "/kanji-recognizer/models/model_3_11.json",
+    modelPath: "/models/model_3_11.onnx",
+    mapObjectPath: "/models/model_3_11.json",
   },
 ];
 
@@ -44,7 +44,7 @@ export const ModelsMenu: FC = () => {
     null
   );
   const isModelsMenuOpen = Boolean(modelsMenuAnchor);
-  const [selectedModel, setSelectedModel] = useState<string>(models[0].set);
+  const [selectedModel, setSelectedModel] = useState<string>(models[2].set);
   const { loadModel } = useModelContext();
 
   const handleOpen = (event: MouseEvent<HTMLElement>) =>
@@ -60,7 +60,6 @@ export const ModelsMenu: FC = () => {
   return (
     <>
       <IconButton className="row--2" onClick={handleOpen}>
-        {/* <MoreVertIcon sx={{ color: "#bfbfbf" }} /> */}
         <MoreVertIcon color="primary" />
       </IconButton>
       <Menu

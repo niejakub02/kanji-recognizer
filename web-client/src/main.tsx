@@ -10,9 +10,9 @@ import { LoaderProvider } from "@context/LoaderContext";
 
 const router = createBrowserRouter([
   {
-    path: "/kanji-recognizer",
+    path: "/",
     element: <Home />,
-  }
+  },
 ]);
 
 const theme = createTheme({

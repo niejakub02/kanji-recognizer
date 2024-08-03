@@ -87,8 +87,7 @@ export const ModelProvider: FC<ModelProviderProps> = ({ children }) => {
 
   useEffect(() => {
     (async () => {
-      const [model] = models;
-      await loadModel(model.modelPath, model.mapObjectPath);
+      await loadModel(models[2].modelPath, models[2].mapObjectPath);
     })();
   }, []);
 
